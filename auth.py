@@ -9,6 +9,7 @@ from models import User
 from passlib.context import CryptContext
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from jose import JWTError, jwt
+from settings import settings
 
 router = APIRouter(
     prefix="/auth",
@@ -16,9 +17,9 @@ router = APIRouter(
 )
 
 # Secret key for signing the JWT
-SECRET_KEY = "7ed1d879c78eac55ec29bbd5ff79088454acb9bfe518f144f704aa7450dae28e79f3826764b9ca6af3a110356879cb72ad3ab739493b29436dc5a76604d52dd3"
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 20
+SECRET_KEY = settings.SECRET_KEY
+ALGORITHM = settings.ALGORITHM
+ACCESS_TOKEN_EXPIRE_MINUTES = settings.ACCESS_TOKEN_EXPIRE_MINUTES
 
 bcrypt_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_bearer = OAuth2PasswordBearer(tokenUrl="auth/token")
