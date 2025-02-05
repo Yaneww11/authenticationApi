@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
-from typing import Annotated
+from typing import Annotated, Optional
 from fastapi import Depends, HTTPException, APIRouter
+from fastapi.params import Header
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from starlette import status
@@ -43,16 +44,32 @@ def get_db():
 db_dependency = Annotated[Session, Depends(get_db)]
 
 @router.post("/token", response_model=Token)
-async def login_for_access_token(form_data: Annotated[OAuth2PasswordRequestForm, Depends()], db: db_dependency):
-    user = authenticate_user(form_data.username, form_data.password, db)
-    if not user:
+async def login_for_access_token(
+    authorization: Optional[str] = Header(None),
+    db: Session = Depends(get_db)
+):
+    if not authorization or not authorization.startswith("Basic "):
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect username or password",
-            headers={"WWW-Authenticate": "Bearer"},
+            status_code=401,
+            detail="Invalid or missing authorization header",
+            headers={"WWW-Authenticate": "Basic"},
         )
 
+    import base64
+    try:
+        credentials = base64.b64decode(authorization.split(" ")[1]).decode("utf-8")
+        client_id, client_secret = credentials.split(":", 1)
+    except Exception:
+        raise HTTPException(status_code=401, detail="Invalid credentials format")
+
+    # Validate user
+    user = authenticate_user(client_id, client_secret, db)
+    if not user:
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+
+    # Generate Token
     token = create_access_token(user.username, user.id, timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
+
     return {"access_token": token, "token_type": "bearer", "expire_minutes": ACCESS_TOKEN_EXPIRE_MINUTES}
 
 
@@ -74,20 +91,33 @@ def authenticate_user(username: str, password: str, db: Session):
         return False
     return user
 
-async def get_current_user(token: Annotated[str,Depends(oauth2_bearer)], db: Session = Depends(get_db)):
+async def get_current_user(
+    authorization: Optional[str] = Header(None),
+    db: Session = Depends(get_db)
+):
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
         headers={"WWW-Authenticate": "Bearer"},
     )
+
+    if not authorization or not authorization.startswith("Bearer "):
+        raise credentials_exception
+
     try:
+        token = authorization.split(" ")[1]
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         username: str = payload.get("sub")
         user_id: int = payload.get("id")
+
         if username is None or user_id is None:
             raise credentials_exception
 
-        return {"username": username, "id": user_id}
+        user = db.query(User).filter(User.id == user_id, User.username == username).first()
+        if not user:
+            raise credentials_exception
+
+        return user
     except JWTError:
         raise credentials_exception
 
