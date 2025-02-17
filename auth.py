@@ -115,7 +115,7 @@ def get_current_user(
 user_dependency = Annotated[dict, Depends(get_current_user)]
 
 @router.post("/", status_code=status.HTTP_201_CREATED)
-async def create_user(user: user_dependency,db: db_dependency, create_user_request: CreateUserRequest):
+async def create_user(db: db_dependency, create_user_request: CreateUserRequest):
     if db.query(User).filter(User.username == create_user_request.username).first():
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
