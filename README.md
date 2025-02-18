@@ -37,5 +37,5 @@ The project uses environment variables for configuration. Create a `.env` file i
 2. Open the API documentation in your browser:
 
    ```
-   http://127.0.0.1:8000/docs.
+   http://127.0.0.1:8000/docs#/
    ```
