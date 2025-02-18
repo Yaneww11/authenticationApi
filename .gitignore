@@ -19,6 +19,7 @@ site_build
 venv
 docs.zip
 archive.zip
+venv
 .venv
 
 # macOS
