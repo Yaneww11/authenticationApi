@@ -1,7 +1,7 @@
-# tokens_staging_cardbox
+# cardbox-auth
 
 ## Overview
-`tokens_staging_cardbox` is a Python project that utilizes FastAPI for building API for jwt authentication. It includes configurations managed by Pydantic and environment variables stored in a `.env` file.
+`cardbox-auth` is a Python project that utilizes FastAPI for building API for jwt authentication. It includes configurations managed by Pydantic and environment variables stored in a `.env` file.
 
 ## Requirements
 - Python 3.11+
@@ -10,7 +10,7 @@
 1. Clone the repository:
     ```sh
     git clone <repository_url>
-    cd tokens_staging_cardbox
+    cd cardbox-auth
     ```
 
 2. Create a virtual environment:
