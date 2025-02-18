@@ -26,3 +26,10 @@
 
 ## Configuration
 The project uses environment variables for configuration. Create a `.env` file in the root directory with the content from .env.sample file.
+
+## Usage
+
+1. Run the FastAPI application:
+
+   ```bash
+   uvicorn main:app --reload
